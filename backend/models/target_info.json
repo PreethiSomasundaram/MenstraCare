@@ -1,0 +1,7 @@
+{
+    "target_column": "PCOS_Y_N",
+    "class_mapping": {
+        "0": "No PCOS",
+        "1": "PCOS"
+    }
+}

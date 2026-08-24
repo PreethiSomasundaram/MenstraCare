@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Training Results — MenstraCare</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-page="training">
+
+<nav class="nav">
+  <a href="index.html" class="nav-brand">
+    <span class="logo-dot"></span>
+    MenstraCare
+  </a>
+  <button id="nav-toggle-btn" class="nav-toggle-btn" aria-label="Toggle navigation">&#9776;</button>
+  <div class="nav-links" id="nav-links">
+    <a href="index.html" class="nav-link" data-page="home">Home</a>
+    <a href="prediction.html" class="nav-link" data-page="prediction">Prediction</a>
+    <a href="training-results.html" class="nav-link" data-page="training">Training Results</a>
+    <button id="theme-toggle" class="theme-toggle"></button>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="page-header">
+    <span class="eyebrow">Training Results</span>
+    <h1>Model training &amp; evaluation</h1>
+    <p>Actual metrics and visualizations produced while training the three models in MenstraCare_Training.ipynb.</p>
+  </div>
+
+  <div id="loading" class="loading-state">Loading training results…</div>
+  <div id="error" class="error-state" style="display:none;"></div>
+
+  <div id="content" style="display:none;">
+
+    <div class="card-grid" id="dataset-stats" style="margin-bottom:24px;"></div>
+
+    <h2 class="section-title">Model comparison</h2>
+    <div class="card">
+      <div class="table-wrap">
+        <table id="comparison-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Accuracy</th>
+              <th>Precision</th>
+              <th>Recall</th>
+              <th>F1 Score</th>
+              <th>ROC-AUC</th>
+            </tr>
+          </thead>
+          <tbody id="comparison-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2 class="section-title">Metric comparison chart</h2>
+    <div class="card chart-card">
+      <canvas id="comparison-chart"></canvas>
+    </div>
+
+    <h2 class="section-title">ROC curves</h2>
+    <div class="card chart-card">
+      <canvas id="roc-chart"></canvas>
+    </div>
+
+    <h2 class="section-title">Confusion matrices</h2>
+    <div class="confusion-grid" id="confusion-grid"></div>
+
+    <h2 class="section-title">Random Forest — feature importance</h2>
+    <div class="card chart-card">
+      <canvas id="feature-importance-chart"></canvas>
+    </div>
+
+  </div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/training-results.js"></script>
+</body>
+</html>

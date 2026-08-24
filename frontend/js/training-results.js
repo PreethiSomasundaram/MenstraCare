@@ -12,6 +12,24 @@ const MODEL_COLORS = {
   svm: "#e8863a",
 };
 
+function hexToRgba(hex, alpha = 1) {
+  if (!hex) return `rgba(100,100,100,${alpha})`;
+  const h = hex.replace("#", "");
+  const bigint = parseInt(
+    h.length === 3
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : h,
+    16,
+  );
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 async function loadTrainingResults() {
   const res = await fetch(`${API_BASE}/api/training-results`);
   if (!res.ok) throw new Error("Failed to load training results");
@@ -32,7 +50,7 @@ function renderDatasetStats(dataset) {
       <div class="stat-card">
         <div class="stat-label">${i.label}</div>
         <div class="stat-value">${i.value}</div>
-      </div>`
+      </div>`,
     )
     .join("");
 }
@@ -79,7 +97,9 @@ function renderComparisonChart(comparison) {
   const datasets = comparison.map((row) => ({
     label: row.model,
     data: metrics.map((m) => +(row[m] * 100).toFixed(2)),
-    backgroundColor: MODEL_COLORS[row.key] || colors.accent,
+    backgroundColor: hexToRgba(MODEL_COLORS[row.key] || colors.accent, 0.9),
+    borderColor: MODEL_COLORS[row.key] || colors.accent,
+    borderWidth: 1,
     borderRadius: 4,
   }));
 
@@ -124,6 +144,8 @@ function renderRocChart(rocCurves, comparison) {
       borderWidth: 2,
       pointRadius: 0,
       tension: 0.15,
+      showLine: true,
+      fill: false,
     };
   });
 
@@ -138,28 +160,37 @@ function renderRocChart(rocCurves, comparison) {
     borderDash: [6, 6],
     borderWidth: 1.5,
     pointRadius: 0,
+    showLine: true,
+    fill: false,
   });
 
   if (charts.roc) charts.roc.destroy();
   charts.roc = new Chart(ctx, {
-    type: "scatter",
+    type: "line",
     data: { datasets },
     options: {
       responsive: true,
-      showLine: true,
       plugins: {
         legend: { position: "bottom", labels: { color: colors.text } },
       },
       scales: {
         x: {
-          title: { display: true, text: "False Positive Rate", color: colors.muted },
+          title: {
+            display: true,
+            text: "False Positive Rate",
+            color: colors.muted,
+          },
           min: 0,
           max: 1,
           ticks: { color: colors.muted },
           grid: { color: colors.grid },
         },
         y: {
-          title: { display: true, text: "True Positive Rate", color: colors.muted },
+          title: {
+            display: true,
+            text: "True Positive Rate",
+            color: colors.muted,
+          },
           min: 0,
           max: 1,
           ticks: { color: colors.muted },
@@ -207,7 +238,9 @@ function renderFeatureImportance(featureImportance) {
   const ctx = document.getElementById("feature-importance-chart");
   const colors = chartThemeColors();
 
-  const sorted = [...featureImportance].sort((a, b) => a.importance - b.importance);
+  const sorted = [...featureImportance].sort(
+    (a, b) => a.importance - b.importance,
+  );
 
   if (charts.featureImportance) charts.featureImportance.destroy();
   charts.featureImportance = new Chart(ctx, {
@@ -247,13 +280,15 @@ function renderAll(data) {
   // feature importance numbers) still renders correctly instead of the
   // whole page silently breaking.
   if (typeof Chart === "undefined") {
-    ["comparison-chart", "roc-chart", "feature-importance-chart"].forEach((id) => {
-      const canvas = document.getElementById(id);
-      if (canvas && canvas.parentElement) {
-        canvas.parentElement.innerHTML =
-          '<p style="color:var(--text-muted);">Chart library failed to load — the underlying data above is still accurate.</p>';
-      }
-    });
+    ["comparison-chart", "roc-chart", "feature-importance-chart"].forEach(
+      (id) => {
+        const canvas = document.getElementById(id);
+        if (canvas && canvas.parentElement) {
+          canvas.parentElement.innerHTML =
+            '<p style="color:var(--text-muted);">Chart library failed to load — the underlying data above is still accurate.</p>';
+        }
+      },
+    );
     return;
   }
 
@@ -283,7 +318,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     trainingData = await loadTrainingResults();
   } catch (err) {
     loading.style.display = "none";
-    errorBox.textContent = "Could not reach the backend API. Make sure the FastAPI server is running.";
+    errorBox.textContent =
+      "Could not reach the backend API. Make sure the FastAPI server is running.";
     errorBox.style.display = "block";
     return;
   }

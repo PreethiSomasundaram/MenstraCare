@@ -96,7 +96,7 @@ function renderComparisonChart(comparison) {
 
   const datasets = comparison.map((row) => ({
     label: row.model,
-    data: metrics.map((m) => +(row[m] * 100).toFixed(2)),
+    data: metrics.map((m) => +(row[m.key] * 100).toFixed(2)),
     backgroundColor: hexToRgba(MODEL_COLORS[row.key] || colors.accent, 0.9),
     borderColor: MODEL_COLORS[row.key] || colors.accent,
     borderWidth: 1,
@@ -175,6 +175,7 @@ function renderRocChart(rocCurves, comparison) {
       },
       scales: {
         x: {
+          type: "linear",
           title: {
             display: true,
             text: "False Positive Rate",

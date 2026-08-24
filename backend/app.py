@@ -24,7 +24,6 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -201,15 +200,8 @@ def predict(payload: PredictRequest):
 # ---------------------------------------------------------------------------
 
 if FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
-
-    @app.get("/")
-    def serve_index():
-        return FileResponse(FRONTEND_DIR / "index.html")
-
-    @app.get("/{page_name}.html")
-    def serve_page(page_name: str):
-        page_path = FRONTEND_DIR / f"{page_name}.html"
-        if page_path.exists():
-            return FileResponse(page_path)
-        raise HTTPException(status_code=404, detail="Page not found")
+    # Mounted at "/" (not "/static") so the frontend's relative paths
+    # (css/styles.css, js/common.js, prediction.html, ...) resolve exactly
+    # as written in the HTML. This is registered AFTER the API routes above,
+    # so /api/... requests are matched by them first and never reach here.
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

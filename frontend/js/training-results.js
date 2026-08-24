@@ -236,12 +236,42 @@ function renderFeatureImportance(featureImportance) {
 }
 
 function renderAll(data) {
+  // Non-chart sections (table, confusion matrices) render from plain data
+  // and don't depend on the Chart.js library, so they always run.
   renderDatasetStats(data.dataset);
   renderComparisonTable(data.comparison);
-  renderComparisonChart(data.comparison);
-  renderRocChart(data.roc_curves, data.comparison);
   renderConfusionMatrices(data.confusion_matrices, data.comparison);
-  renderFeatureImportance(data.feature_importance);
+
+  // Chart.js-dependent sections are isolated: if the library failed to
+  // load for any reason, the rest of the page (table, confusion matrices,
+  // feature importance numbers) still renders correctly instead of the
+  // whole page silently breaking.
+  if (typeof Chart === "undefined") {
+    ["comparison-chart", "roc-chart", "feature-importance-chart"].forEach((id) => {
+      const canvas = document.getElementById(id);
+      if (canvas && canvas.parentElement) {
+        canvas.parentElement.innerHTML =
+          '<p style="color:var(--text-muted);">Chart library failed to load — the underlying data above is still accurate.</p>';
+      }
+    });
+    return;
+  }
+
+  try {
+    renderComparisonChart(data.comparison);
+  } catch (err) {
+    console.error("Comparison chart failed to render:", err);
+  }
+  try {
+    renderRocChart(data.roc_curves, data.comparison);
+  } catch (err) {
+    console.error("ROC chart failed to render:", err);
+  }
+  try {
+    renderFeatureImportance(data.feature_importance);
+  } catch (err) {
+    console.error("Feature importance chart failed to render:", err);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -251,14 +281,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     trainingData = await loadTrainingResults();
-    loading.style.display = "none";
-    content.style.display = "block";
-    renderAll(trainingData);
   } catch (err) {
     loading.style.display = "none";
     errorBox.textContent = "Could not reach the backend API. Make sure the FastAPI server is running.";
     errorBox.style.display = "block";
+    return;
   }
+
+  loading.style.display = "none";
+  content.style.display = "block";
+  renderAll(trainingData);
 });
 
 window.addEventListener("menstracare-theme-changed", () => {
